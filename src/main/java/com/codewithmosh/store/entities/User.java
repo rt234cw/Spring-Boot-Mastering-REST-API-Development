@@ -30,6 +30,11 @@ public class User {
     @Column(name = "password")
     private String password;
 
+    @Column(name="role")
+    //告訴Spring把這個值以string type存在database中
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
     @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
     @Builder.Default
     private List<Address> addresses = new ArrayList<>();
