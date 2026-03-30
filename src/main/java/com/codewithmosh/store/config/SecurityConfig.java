@@ -22,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 @Configuration
 @EnableWebSecurity
@@ -53,7 +54,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter, HandlerExceptionResolver handlerExceptionResolver) throws Exception {
         http.sessionManagement(
                  //告訴伺服器我們不需要維護state，no sessions
                 c->c.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -79,6 +80,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,"/users").permitAll()
                         .requestMatchers(HttpMethod.POST,"/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST,"/auth/refresh").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/checkout").permitAll()
 
                         //其他頁面都需要授權才能瀏覽
                         .anyRequest().authenticated())
@@ -93,7 +95,7 @@ public class SecurityConfig {
                     c.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED));
 
                     // 403 通過驗證，但不具此頁面權限
-                    c.accessDeniedHandler((req, res, ex) -> res.setStatus(HttpStatus.FORBIDDEN.value()));
+                    c.accessDeniedHandler((req, res, ex) -> handlerExceptionResolver.resolveException(req,res,null,ex));
 
 
                 });
