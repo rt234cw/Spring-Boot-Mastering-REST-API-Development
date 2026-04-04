@@ -9,6 +9,8 @@ import com.codewithmosh.store.orders.OrderRepository;
 import com.codewithmosh.store.auth.AuthService;
 import com.codewithmosh.store.carts.CartService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +23,8 @@ public class CheckoutService {
     private final CartService cartService;
     private final AuthService authService;
     private final PaymentGateway paymentGateway;
+
+    private static final Logger log = LoggerFactory.getLogger(CheckoutService.class);
 
 
 
@@ -57,14 +61,28 @@ public class CheckoutService {
     }
 
     public void handleWebhookEvent(WebhookRequest webhookRequest) {
-       paymentGateway.parseWebhookRequest(webhookRequest)
-               .ifPresent(paymentRequest -> {
-                   var order = orderRepository.findById(paymentRequest.getOrderId()).orElseThrow();
-                   order.setStatus(paymentRequest.getPaymentStatus());
-                   orderRepository.save(order);
-                       });
+        try {
+            paymentGateway.parseWebhookRequest(webhookRequest)
+                    .ifPresent(paymentRequest -> {
 
+                        Long orderId = paymentRequest.getOrderId();
+                        log.info("接收到 Webhook，準備更新訂單狀態。Order ID: {}", orderId);
 
+                        // 改用 ifPresentOrElse 或捕獲錯誤，不要讓它默默拋出 500
+                        var order = orderRepository.findById(orderId)
+                                .orElseThrow(() -> new RuntimeException("Webhook 錯誤：在資料庫中找不到 Order ID = " + orderId));
+
+                        order.setStatus(paymentRequest.getPaymentStatus());
+                        orderRepository.save(order);
+
+                        log.info("訂單 {} 狀態已成功更新為 {}", orderId, paymentRequest.getPaymentStatus());
+                    });
+        } catch (Exception e) {
+            // 將詳細的錯誤原因印在 Railway 的 Logs 裡面！
+            log.error("處理 Webhook 時發生嚴重的內部錯誤: ", e);
+            // 若需要讓 Stripe 知道失敗並重試，可以考慮重新拋出異常，或者回傳 500
+            throw new RuntimeException("Webhook 處理失敗", e);
+        }
     }
 
 }
