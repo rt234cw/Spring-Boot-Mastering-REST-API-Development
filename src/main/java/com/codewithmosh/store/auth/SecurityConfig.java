@@ -77,6 +77,10 @@ public class SecurityConfig {
                                 "/webjars/**").permitAll()
                         //這個users endpoint只允許POST method
                         .requestMatchers(HttpMethod.POST,"/users").permitAll()
+                        .requestMatchers(HttpMethod.GET,"/products/**").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/products/**").hasRole(Role.ADMIN.name())
+                        .requestMatchers(HttpMethod.PUT,"/products/**").hasRole(Role.ADMIN.name())
+                        .requestMatchers(HttpMethod.DELETE,"/products/**").hasRole(Role.ADMIN.name())
                         .requestMatchers(HttpMethod.POST,"/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST,"/auth/refresh").permitAll()
                         .requestMatchers(HttpMethod.POST,"/checkout/webhook").permitAll()
