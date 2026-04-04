@@ -19,7 +19,6 @@ import java.util.Map;
 public class CheckoutController {
 
     private final CheckoutService checkoutService;
-    private final OrderRepository orderRepository;
 
 
     @PostMapping
