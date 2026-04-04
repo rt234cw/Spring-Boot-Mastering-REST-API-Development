@@ -83,7 +83,7 @@ public class SecurityConfig {
                 // 如果是沒有寫到的對應exception，就會回傳500 internal server error
                 .exceptionHandling(c-> {
                     // 401 未通過驗證
-                    c.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED));
+//                    c.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED));
 
                     // 403 通過驗證，但不具此頁面權限
                     c.accessDeniedHandler((req, res, ex) -> handlerExceptionResolver.resolveException(req,res,null,ex));
